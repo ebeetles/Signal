@@ -5,15 +5,21 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import BackgroundTasks, Depends, FastAPI
+from fastapi import BackgroundTasks, Depends, FastAPI, Request
+from pydantic import ValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import db, errors
-from app.auth import require_cron_token
+from app.auth import require_cron_token, telegram_secret_ok
+from app.errors import ApiError
+from app.feedback import handle_update
 from app.collect import run_collect
 from app.config import get_settings
-from app.schemas import Accepted
+from app.schemas import Accepted, TgUpdate
 from app.send import run_send
+
+
+log = logging.getLogger("signal.api")
 
 
 def _setup_logging() -> None:
@@ -79,3 +85,16 @@ async def collect(background: BackgroundTasks) -> dict:
 async def send(background: BackgroundTasks) -> dict:
     background.add_task(run_send)
     return {"status": "accepted", "job": "send"}
+
+
+@app.post("/telegram/webhook", tags=["ops"], summary="Telegram Bot API webhook (votes and commands)")
+async def telegram_webhook(request: Request) -> dict:
+    if not telegram_secret_ok(request):
+        raise ApiError(401, "Missing or invalid secret token")
+    try:
+        update = TgUpdate.model_validate(await request.json())
+    except (ValueError, ValidationError):
+        return {"ok": True, "result": "ignored"}  # malformed: don't make Telegram retry it
+    # Unexpected errors propagate as 500 so Telegram redelivers (votes are idempotent).
+    result = await handle_update(update)
+    return {"ok": True, "result": result}
