@@ -7,7 +7,16 @@ It ranks by **convergence, not keywords**. Stored history defines what "normal" 
 ## Status
 
 <!-- STATUS:START -->
-All seven milestones are implemented and covered by 232 automated tests, run locally against Postgres. Deployment to Render and live verification are **pending**; this section will list what has been verified on the deployed service.
+Deployed at **https://signal-yfj9.onrender.com** (Render free web service, Supabase Postgres via the session pooler, cron-job.org schedules). The following was verified on the live service on 2026-09-25:
+
+- **Skeleton:** `/health` 200 in ~0.1 s without touching the DB. Both migrations were applied by the Render build.
+- **Collector:** `/collect` returns 401 without a valid token and 202 with one. A background run fetched all 17 sources in 16 s, an overlapping call was recorded as `skipped` (advisory lock), and a repeat run added 0 items.
+- **Scorer and sender:** `/send` delivered the first digest to Telegram (3 items, header plus silent items with 👍/👎 buttons) and snapshotted interest weights.
+- **Feedback:** the webhook rejects a missing or wrong secret with 401. Real votes (2 👍, 1 👎) were recorded. `/add` and `/interests` work from Telegram.
+- **Public API:** CORS allows only `https://ebeetles.github.io`, errors use the documented JSON shape, and the 61st request in a minute gets 429 (spoofed IP headers don't bypass it). A warm `/digests?approved=true` answers in ~0.09 s. All captured output is in [FRONTEND_HANDOFF.md](FRONTEND_HANDOFF.md).
+- **Metrics:** `/stats` reports hit rate 0.67, quiet-day rate 0 and 0 missed reports. Collect reliability shows `null` until the first full hour of scheduled runs completes.
+
+Not yet observable: multi-day behavior (baselines fill in over 14 days, and scheduled 07:00 sends start 2026-09-26) and archive pagination with real data, since only one digest exists. Both are covered by the automated tests.
 <!-- STATUS:END -->
 
 ## How it works
