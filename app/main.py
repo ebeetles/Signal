@@ -9,13 +9,13 @@ from fastapi import BackgroundTasks, Depends, FastAPI, Request
 from pydantic import ValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import db, errors
+from app import api, db, errors
 from app.auth import require_cron_token, telegram_secret_ok
 from app.errors import ApiError
 from app.feedback import handle_update
 from app.collect import run_collect
 from app.config import get_settings
-from app.schemas import Accepted, TgUpdate
+from app.schemas import Accepted, Health, TgUpdate
 from app.send import run_send
 
 
@@ -55,7 +55,10 @@ app.add_middleware(
 )
 
 
-@app.get("/health", tags=["ops"])
+app.include_router(api.router)
+
+
+@app.get("/health", tags=["ops"], response_model=Health)
 async def health() -> dict:
     """Keep-warm target. Never touches the database."""
     return {"status": "ok"}

@@ -64,9 +64,9 @@ async def close_pool() -> None:
 
 
 @asynccontextmanager
-async def connection() -> AsyncIterator[psycopg.AsyncConnection]:
+async def connection(timeout: float | None = None) -> AsyncIterator[psycopg.AsyncConnection]:
     pool = await get_pool()
-    async with pool.connection() as conn:
+    async with pool.connection(timeout=timeout) as conn:
         yield conn
 
 
