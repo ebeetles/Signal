@@ -81,7 +81,7 @@ MIN_COVERED_HOURS_PER_DAY = 12  # baseline days with fewer covered hours are ski
 MIN_DISTINCT_SOURCES = 3  # independent origins required in the window
 INTEREST_FLOOR = 0.1  # interest score for topics matching no interest term
 MATCH_MIN = 0.05  # weighted similarity needed to list a term in "matches:"
-SCORE_THRESHOLD = 1.5  # final score needed to be sent
+SCORE_THRESHOLD = 1.0  # final score needed to be sent (off-interest topics need spike >= 10)
 TOP_N = 5  # max items per digest
 NO_REPEAT_DAYS = 3  # don't resend an entity within this many days...
 REPEAT_SPIKE_MULTIPLIER = 2.0  # ...unless its spike is at least this many times higher

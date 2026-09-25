@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 from typing import Awaitable, Callable
 
@@ -199,7 +200,7 @@ async def insert_items(
 async def link_entities(conn: psycopg.AsyncConnection, new_items: list[dict], aliases: AliasTable) -> dict:
     """Extract entities from new item titles and insert mentions."""
     per_item: list[tuple[int, list]] = []
-    strong: dict[str, str] = {}
+    displays: dict[str, Counter] = {}
     all_keys: set[str] = set()
     for item in new_items:
         cands = extract(item["title"], aliases)
@@ -207,7 +208,9 @@ async def link_entities(conn: psycopg.AsyncConnection, new_items: list[dict], al
         for c in cands:
             all_keys.add(c.key)
             if not c.weak:
-                strong.setdefault(c.key, c.display)
+                displays.setdefault(c.key, Counter())[c.display] += 1
+    # a new entity is named by its most common surface form (longest on ties)
+    strong = {k: max(cnt, key=lambda d: (cnt[d], len(d))) for k, cnt in displays.items()}
     if not all_keys:
         return {"mentions": 0, "entities_new": 0}
 
