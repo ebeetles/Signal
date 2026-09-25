@@ -333,7 +333,7 @@ $ for i in $(seq 20); do curl -s -o /dev/null -w '%{http_code} %{time_total}s %{
 
 ### Known limitations
 
-- **Only one digest exists yet** (2026-09-25, the first live send, with 2 approved items). A real response with a second page couldn't be captured, which is why `next_before` is `null` in every sample above. Pagination is covered by automated tests, and new digests arrive every morning at 07:00 America/New_York, so the archive grows daily. Some mornings are "quiet" (nothing sent); those never appear with `approved=true`.
+- **Only one digest exists yet** (2026-09-25, the first live send, with 2 approved items). A real response with a second page couldn't be captured, which is why `next_before` is `null` in every sample above. Pagination is covered by automated tests, and new digests arrive every morning at 08:00 America/New_York, so the archive grows daily. Some mornings are "quiet" (nothing sent); those never appear with `approved=true`.
 - **Interest history has a single day of points** so far (one snapshot per morning send). The chart must handle 0 or 1 points per term, and missing days.
 - **`reason` text will change as history builds.** For the first 14 days it says "(no history yet)"; after that it says "(usually N)". Treat it as opaque display text.
 - **The preflight rejection body is plain text, not JSON** (`Disallowed CORS origin`). It comes from the CORS layer and only affects preflights from other origins, which this frontend never sends.

@@ -1,6 +1,6 @@
 # Signal
 
-Signal is a personal morning brief. It watches free sources (Hacker News plus RSS/Atom feeds: company blogs, changelogs, GitHub releases, YouTube channels) and notices when several **independent** sources start talking about the same thing within hours. Every morning at 07:00 Eastern it sends Elwin 3–5 such items on Telegram. Items he marks 👍 are published through a small read-only API to the "Daily cool stuff" section of his portfolio.
+Signal is a personal morning brief. It watches free sources (Hacker News plus RSS/Atom feeds: company blogs, changelogs, GitHub releases, YouTube channels) and notices when several **independent** sources start talking about the same thing within hours. Every morning at 08:00 Eastern it sends Elwin 3–5 such items on Telegram. Items he marks 👍 are published through a small read-only API to the "Daily cool stuff" section of his portfolio.
 
 It ranks by **convergence, not keywords**. Stored history defines what "normal" looks like for each entity, and an item is interesting when many independent outlets suddenly mention it at once.
 
@@ -16,7 +16,7 @@ Deployed at **https://signal-yfj9.onrender.com** (Render free web service, Supab
 - **Public API:** CORS allows only `https://ebeetles.github.io`, errors use the documented JSON shape, and the 61st request in a minute gets 429 (spoofed IP headers don't bypass it). A warm `/digests?approved=true` answers in ~0.09 s. All captured output is in [FRONTEND_HANDOFF.md](FRONTEND_HANDOFF.md).
 - **Metrics:** `/stats` reports hit rate 0.67, quiet-day rate 0 and 0 missed reports. Collect reliability shows `null` until the first full hour of scheduled runs completes.
 
-Not yet observable: multi-day behavior (baselines fill in over 14 days, and scheduled 07:00 sends start 2026-09-26) and archive pagination with real data, since only one digest exists. Both are covered by the automated tests.
+Not yet observable: multi-day behavior (baselines fill in over 14 days, and scheduled 08:00 sends start 2026-09-26) and archive pagination with real data, since only one digest exists. Both are covered by the automated tests.
 <!-- STATUS:END -->
 
 ## How it works
@@ -24,7 +24,7 @@ Not yet observable: multi-day behavior (baselines fill in over 14 days, and sche
 ```
 cron-job.org ──GET /health (10 min)──▶ ┌─────────────────────────┐
              ──POST /collect (hourly)─▶ │  FastAPI on Render      │──▶ Supabase Postgres
-             ──POST /send (07:00 ET)──▶ │  (free web service)     │
+             ──POST /send (08:00 ET)──▶ │  (free web service)     │
 Telegram ─────POST /telegram/webhook──▶ │                         │──▶ Telegram Bot API
 Portfolio ────GET /digests, …─────────▶ └─────────────────────────┘
 ```
@@ -39,7 +39,7 @@ Portfolio ────GET /digests, …─────────▶ └──�
    - Selection: the top 5 above `SCORE_THRESHOLD`. It skips entities sent in the last 3 days unless their spike doubled, and near-duplicates of a better pick. No picks means a quiet day.
    - Best link: a first-party page (primary source, a `primary_domains` site, or a releases/changelog URL); otherwise the link with the most independent weight behind it.
    - Reason line, generated from data: `13 sources in 19h (usually 0), matches: Claude`.
-5. **Send** (`POST /send`, 07:00 ET, once per local date). It stores the digest with snapshots of headline, URL and source, so the public archive survives item pruning. It then sends a header message with notification, one silent message per item with 👍/👎 buttons, or "Nothing big today." Finally it snapshots interest weights for the history chart.
+5. **Send** (`POST /send`, 08:00 ET, once per local date). It stores the digest with snapshots of headline, URL and source, so the public archive survives item pruning. It then sends a header message with notification, one silent message per item with 👍/👎 buttons, or "Nothing big today." Finally it snapshots interest weights for the history chart.
 6. **Feedback** (`POST /telegram/webhook`). The webhook checks the secret-token header and only accepts updates from `TELEGRAM_CHAT_ID`. Votes are validated against `digest_items`, and a later vote overwrites an earlier one. Learning moves *learned* terms matched by the item by ±`LEARNING_RATE` (capped to 0–5). A first 👍 adds the entity's name, without its version, as a learned term. Manual terms are never changed by learning. The bot also accepts `/add <term> [weight]`, `/remove <term>`, `/interests`, `/missed <text>` and `/help`.
 
 ## API

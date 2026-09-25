@@ -123,7 +123,7 @@ Create a free account at https://cron-job.org. Then go to **Settings** and set y
 | --- | --- |
 | Title | Signal collect |
 | URL | `https://<your-service>.onrender.com/collect` |
-| Execution schedule | Custom: `50 * * * *` (every hour at minute 50, so fresh data exists before the 07:00 send) |
+| Execution schedule | Custom: `50 * * * *` (every hour at minute 50, so fresh data exists before the 08:00 send) |
 | Advanced → Request method | POST |
 | Advanced → Headers | Key `Authorization`, value `Bearer <CRON_TOKEN>` (the literal word `Bearer`, a space, then the token from `.env`) |
 | Advanced → Timezone | America/New_York |
@@ -135,7 +135,7 @@ Create a free account at https://cron-job.org. Then go to **Settings** and set y
 | --- | --- |
 | Title | Signal send |
 | URL | `https://<your-service>.onrender.com/send` |
-| Execution schedule | Every day at 07:00 |
+| Execution schedule | Every day at 08:00 (any morning time works; the digest date is the local date when it runs) |
 | Advanced → Request method | POST |
 | Advanced → Headers | Key `Authorization`, value `Bearer <CRON_TOKEN>` |
 | Advanced → Timezone | America/New_York |
@@ -145,4 +145,4 @@ Both POST endpoints answer `202 Accepted` right away and do the work in the back
 
 ## Done
 
-When all five sections are complete, the `.env` file should have every value filled in. Signal then collects hourly, sends at 07:00 Eastern, and learns from your 👍/👎.
+When all five sections are complete, the `.env` file should have every value filled in. Signal then collects hourly, sends at 08:00 Eastern, and learns from your 👍/👎.
