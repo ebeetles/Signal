@@ -5,11 +5,14 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import BackgroundTasks, Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import db, errors
+from app.auth import require_cron_token
+from app.collect import run_collect
 from app.config import get_settings
+from app.schemas import Accepted
 
 
 def _setup_logging() -> None:
@@ -49,3 +52,16 @@ app.add_middleware(
 async def health() -> dict:
     """Keep-warm target. Never touches the database."""
     return {"status": "ok"}
+
+
+@app.post(
+    "/collect",
+    tags=["ops"],
+    status_code=202,
+    response_model=Accepted,
+    dependencies=[Depends(require_cron_token)],
+    summary="Start an hourly collect run (returns immediately)",
+)
+async def collect(background: BackgroundTasks) -> dict:
+    background.add_task(run_collect)
+    return {"status": "accepted", "job": "collect"}

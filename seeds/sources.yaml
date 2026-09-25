@@ -1,0 +1,109 @@
+# Signal sources. Collect syncs this file into the `sources` table on every
+# run: entries are matched by `name`, and sources removed from this file are
+# deactivated (their history is kept).
+#
+# Fields
+#   name                 unique display name, shown as the source on the portfolio
+#   type                 hn | rss
+#   url                  hn: API base URL; rss: the feed URL (RSS or Atom)
+#   independence_weight  0 < w <= 5, default 1.0. How much one outlet counts.
+#                        Lower it for noisy or derivative feeds.
+#   primary              true for first-party sources (company blog, release
+#                        notes, changelog). Their links are preferred.
+#   origin               optional independence key shared by every item of this
+#                        source. Defaults to the domain of each item's link
+#                        (YouTube feeds default to the channel).
+#   title_prefix         optional text prepended to titles that don't contain it,
+#                        e.g. "vLLM" for a releases feed titled just "v1.0.0".
+#   active               default true
+#
+# Feed URL patterns
+#   GitHub releases:  https://github.com/<owner>/<repo>/releases.atom
+#   YouTube channel:  https://www.youtube.com/feeds/videos.xml?channel_id=<id>
+#
+# Every URL below returned a parseable feed on 2026-09-25. A broken feed is
+# logged and skipped; it never fails the run.
+
+sources:
+  # Core source: keep.
+  - name: Hacker News
+    type: hn
+    url: https://hacker-news.firebaseio.com/v0/
+    independence_weight: 1.0
+
+  # ---- EXAMPLE entries below: replace or extend with your own list --------
+
+  - name: OpenAI News            # EXAMPLE (first-party blog)
+    type: rss
+    url: https://openai.com/news/rss.xml
+    primary: true
+
+  - name: Google DeepMind Blog   # EXAMPLE (first-party blog)
+    type: rss
+    url: https://deepmind.google/blog/rss.xml
+    primary: true
+
+  - name: Google AI Blog         # EXAMPLE (first-party blog)
+    type: rss
+    url: https://blog.google/technology/ai/rss/
+    primary: true
+
+  - name: Hugging Face Blog      # EXAMPLE (first-party blog)
+    type: rss
+    url: https://huggingface.co/blog/feed.xml
+    primary: true
+
+  - name: Rust Blog              # EXAMPLE (first-party blog)
+    type: rss
+    url: https://blog.rust-lang.org/feed.xml
+    primary: true
+
+  - name: Claude Code releases   # EXAMPLE (GitHub releases feed)
+    type: rss
+    url: https://github.com/anthropics/claude-code/releases.atom
+    primary: true
+    title_prefix: Claude Code
+    independence_weight: 0.5
+
+  - name: Simon Willison         # EXAMPLE (independent blog)
+    type: rss
+    url: https://simonwillison.net/atom/everything/
+
+  - name: The Verge AI           # EXAMPLE (news outlet)
+    type: rss
+    url: https://www.theverge.com/rss/ai-artificial-intelligence/index.xml
+
+  - name: TechCrunch AI          # EXAMPLE (news outlet)
+    type: rss
+    url: https://techcrunch.com/category/artificial-intelligence/feed/
+
+  - name: Ars Technica           # EXAMPLE (news outlet)
+    type: rss
+    url: https://feeds.arstechnica.com/arstechnica/index
+
+  - name: MIT Technology Review AI  # EXAMPLE (news outlet)
+    type: rss
+    url: https://www.technologyreview.com/topic/artificial-intelligence/feed
+
+  - name: Wired AI               # EXAMPLE (news outlet)
+    type: rss
+    url: https://www.wired.com/feed/tag/ai/latest/rss
+
+  - name: 404 Media              # EXAMPLE (news outlet)
+    type: rss
+    url: https://www.404media.co/rss/
+
+  - name: Techmeme               # EXAMPLE (aggregator: counts as one outlet)
+    type: rss
+    url: https://www.techmeme.com/feed.xml
+    independence_weight: 0.8
+
+  - name: Lobsters               # EXAMPLE (aggregator: items count as the site they link to)
+    type: rss
+    url: https://lobste.rs/rss
+    independence_weight: 0.8
+
+  - name: Two Minute Papers      # EXAMPLE (YouTube channel)
+    type: rss
+    url: https://www.youtube.com/feeds/videos.xml?channel_id=UCbfYPyITQ-7l4upoX8nvctg
+    independence_weight: 0.5

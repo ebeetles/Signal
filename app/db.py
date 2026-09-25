@@ -68,3 +68,26 @@ async def connection() -> AsyncIterator[psycopg.AsyncConnection]:
     pool = await get_pool()
     async with pool.connection() as conn:
         yield conn
+
+
+@asynccontextmanager
+async def advisory_lock(key: int) -> AsyncIterator[bool]:
+    """Session-level pg_try_advisory_lock on a dedicated connection.
+
+    Yields whether the lock was acquired. The lock is released on exit, and
+    Postgres also drops it if the process dies and the connection closes.
+    """
+    url = get_settings().database_url
+    if not url:
+        raise DatabaseUnavailable("DATABASE_URL is not set")
+    conn = await psycopg.AsyncConnection.connect(url, autocommit=True, prepare_threshold=None)
+    try:
+        row = await (await conn.execute("select pg_try_advisory_lock(%s)", (key,))).fetchone()
+        acquired = bool(row[0])
+        try:
+            yield acquired
+        finally:
+            if acquired and not conn.closed:
+                await conn.execute("select pg_advisory_unlock(%s)", (key,))
+    finally:
+        await conn.close()

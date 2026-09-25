@@ -1,0 +1,16 @@
+# Manual entity aliases: canonical name -> other names for the same thing.
+# Collect loads this on every run. Matching is case-insensitive and also
+# works in all-lowercase titles, so this is also the place for lowercase
+# names that capitalization-based extraction misses (e.g. "vllm").
+#
+# Most version variants already merge on their own: "Claude Opus 5.5",
+# "Opus 5.5" and "Anthropic Claude Opus 5.5" all become one entity. Add an
+# alias only when two names are genuinely different strings.
+#
+# The entries below are EXAMPLES; edit freely.
+
+aliases:
+  Claude Code: [claude-code]
+  Kubernetes: [K8s]
+  vLLM: [vllm]
+  llama.cpp: [llama.cpp, llamacpp]
