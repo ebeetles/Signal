@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import BackgroundTasks, Depends, FastAPI, Request
 from pydantic import ValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 from app import api, db, errors
 from app.auth import require_cron_token, telegram_secret_ok
@@ -43,6 +44,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 errors.install(app)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 _origin = get_settings().portfolio_origin
 app.add_middleware(
