@@ -13,6 +13,7 @@ from app.auth import require_cron_token
 from app.collect import run_collect
 from app.config import get_settings
 from app.schemas import Accepted
+from app.send import run_send
 
 
 def _setup_logging() -> None:
@@ -65,3 +66,16 @@ async def health() -> dict:
 async def collect(background: BackgroundTasks) -> dict:
     background.add_task(run_collect)
     return {"status": "accepted", "job": "collect"}
+
+
+@app.post(
+    "/send",
+    tags=["ops"],
+    status_code=202,
+    response_model=Accepted,
+    dependencies=[Depends(require_cron_token)],
+    summary="Build and send today's digest (returns immediately; once per day)",
+)
+async def send(background: BackgroundTasks) -> dict:
+    background.add_task(run_send)
+    return {"status": "accepted", "job": "send"}

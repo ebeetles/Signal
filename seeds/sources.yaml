@@ -24,6 +24,23 @@
 # Every URL below returned a parseable feed on 2026-09-25. A broken feed is
 # logged and skipped; it never fails the run.
 
+# Links to these sites count as first-party when choosing the link for a
+# digest item (so an HN story linking to anthropic.com beats a news article).
+# Links to GitHub releases or changelog pages always count as first-party.
+primary_domains:
+  - anthropic.com
+  - claude.com
+  - openai.com
+  - deepmind.google
+  - blog.google
+  - ai.google.dev
+  - ai.meta.com
+  - mistral.ai
+  - x.ai
+  - huggingface.co
+  - blog.rust-lang.org
+  - python.org
+
 sources:
   # Core source: keep.
   - name: Hacker News
