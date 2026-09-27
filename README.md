@@ -1,6 +1,12 @@
 # Signal
 
-Signal is my personal morning brief, deployed at **https://signal-yfj9.onrender.com**. It watches Hacker News and RSS feeds, detects when several independent sources suddenly mention the same thing, and sends me a few items on Telegram every morning. Items I mark 👍 appear on my portfolio.
+Signal is my personal morning brief: every morning, a few tech stories that suddenly got attention, delivered to Telegram.
+
+Most news feeds rank by keywords or popularity. Signal ranks by **convergence**. It watches free sources (Hacker News, company blogs, changelogs, GitHub releases, tech news sites and YouTube channels) and notices when several independent outlets start talking about the same thing within hours. Stored history defines what "normal" looks like for each topic, so a sudden jump stands out, and my interest list decides which jumps I care about. I vote 👍 or 👎 on each item in Telegram; the votes tune my interests, and the 👍 items appear in a "Daily cool stuff" section on my portfolio.
+
+When I replayed it against three weeks of past Hacker News data, it ranked the Claude Opus 5.5 release as the #1 item the morning after launch.
+
+The backend is FastAPI on Render's free tier, with Supabase Postgres, hourly and daily jobs from cron-job.org, and the Telegram Bot API. It is deployed at **https://signal-yfj9.onrender.com** (interactive API docs at [/docs](https://signal-yfj9.onrender.com/docs)). The frontend lives in my portfolio's own repo.
 
 ## 1. What the backend does
 
