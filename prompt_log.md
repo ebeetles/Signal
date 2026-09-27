@@ -1,10 +1,10 @@
 # Prompt log
 
+Initial design decision and brainstorming full chat with claude chat: https://claude.ai/share/cd4f1280-e623-4031-81ef-8ba91bfe264a
+
 ## Tools and models
 
 - **Claude Code** (Anthropic's coding agent, in the Claude desktop app), running **Claude Opus 5.5** (`claude-opus-5-5`). It wrote the backend code, tests, migrations and docs, ran the local and live verification, and filled in `FRONTEND_HANDOFF.md` from the deployed API.
-- **Elwin** wrote the specification ([BACKEND_BRIEF.md](BACKEND_BRIEF.md)) and the handoff template, made the design decisions listed below, and did the account setup (Supabase, Render, the Telegram bot, cron-job.org).
-- Supporting tools the agent used: `uv` (Python 3.12), pytest, a local Postgres 14 for tests, `curl` against the deployed service, and the Algolia HN Search API for the evaluation backfill.
 
 ## Key prompts
 
