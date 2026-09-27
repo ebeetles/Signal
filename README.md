@@ -1,10 +1,10 @@
 # Signal
 
-Signal is a personal morning brief, deployed at **https://signal-yfj9.onrender.com**. It watches Hacker News and RSS feeds, detects when several independent sources suddenly mention the same thing, and sends Elwin a few items on Telegram every morning. Items he marks 👍 appear on his portfolio.
+Signal is my personal morning brief, deployed at **https://signal-yfj9.onrender.com**. It watches Hacker News and RSS feeds, detects when several independent sources suddenly mention the same thing, and sends me a few items on Telegram every morning. Items I mark 👍 appear on my portfolio.
 
 ## 1. What the backend does
 
-Every hour, cron-job.org calls `/collect`, which fetches the sources, extracts entities from headlines, and stores hourly counts in Postgres (Supabase). Every morning, `/send` scores each entity by how far its last 24 hours stand out from its 14-day baseline, boosted by Elwin's interests, and sends the top items to Telegram. His 👍/👎 votes come back through the Telegram webhook.
+Every hour, cron-job.org calls `/collect`, which fetches the sources, extracts entities from headlines, and stores hourly counts in Postgres (Supabase). Every morning, `/send` scores each entity by how far its last 24 hours stand out from its 14-day baseline, boosted by my interests, and sends the top items to Telegram. My 👍/👎 votes come back through the Telegram webhook.
 
 | Method | Path | Parameters | Returns |
 | --- | --- | --- | --- |
@@ -31,7 +31,7 @@ Errors are JSON: `{"error": {"code": "...", "message": "..."}}`, with status 422
 
 ## 2. How the frontend communicates with the backend
 
-The frontend is a separate repo on GitHub Pages (`https://ebeetles.github.io/elwin-webpage/`), built from [FRONTEND_HANDOFF.md](FRONTEND_HANDOFF.md). It only makes public, read-only `GET` requests:
+The frontend is part of my portfolio, a separate repo on GitHub Pages (`https://ebeetles.github.io/elwin-webpage/`), built from [FRONTEND_HANDOFF.md](FRONTEND_HANDOFF.md). It only makes public, read-only `GET` requests:
 
 - **Homepage section**, on page load: `GET /digests?approved=true&limit=5`. It shows up to 5 approved items as linked headlines with their source, reason and a relative date. If the request fails or takes longer than 3 seconds, the section stays hidden.
 - **Archive page**, on load: `GET /digests?approved=true&limit=10`. A "Load more" button requests the same URL with `&before=<next_before>` until `next_before` is `null`.
@@ -54,19 +54,19 @@ cp .env.example .env                  # then fill in the values below
 | --- | --- |
 | `DATABASE_URL` | Postgres connection string (Supabase session pooler in production) |
 | `TELEGRAM_BOT_TOKEN` | Bot token from BotFather |
-| `TELEGRAM_CHAT_ID` | The only chat the bot responds to |
+| `TELEGRAM_CHAT_ID` | My Telegram chat; the bot ignores every other chat |
 | `TELEGRAM_WEBHOOK_SECRET` | Secret Telegram sends with each webhook call |
 | `CRON_TOKEN` | Bearer token for `/collect` and `/send` |
-| `PORTFOLIO_ORIGIN` | The one origin CORS allows (`https://ebeetles.github.io`) |
+| `PORTFOLIO_ORIGIN` | The one origin CORS allows: my portfolio, `https://ebeetles.github.io` |
 | `TIMEZONE` | `America/New_York` |
 
-No paid API keys are needed; every source is free. On Render, the build command is `pip install -r requirements.txt && python -m app.migrate` and the start command is `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Account setup (Supabase, Render, Telegram, cron-job.org) is in [SETUP.md](SETUP.md).
+No paid API keys are needed; every source is free. On Render, the build command is `pip install -r requirements.txt && python -m app.migrate` and the start command is `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. The account setup I did (Supabase, Render, Telegram, cron-job.org) is in [SETUP.md](SETUP.md).
 
 ## 4. How authentication and secrets are handled
 
-- **Secrets stay on the backend.** All tokens live in Render's environment variables (locally, in `.env`, which is gitignored). None of them appear in the frontend or in git.
-- **The frontend needs no key.** The public endpoints are read-only, allow CORS only from the portfolio's origin, and are rate-limited to 60 requests per minute per IP.
-- **Write endpoints need secrets.** `/collect` and `/send` require `Authorization: Bearer <CRON_TOKEN>`, which only cron-job.org has. `/telegram/webhook` requires Telegram's secret-token header, and ignores messages from any chat except Elwin's.
+- **Secrets stay on the backend.** I keep all tokens in Render's environment variables (locally, in `.env`, which is gitignored). None of them appear in the frontend or in git.
+- **The frontend needs no key.** The public endpoints are read-only, allow CORS only from my portfolio's origin, and are rate-limited to 60 requests per minute per IP.
+- **Write endpoints need secrets.** `/collect` and `/send` require `Authorization: Bearer <CRON_TOKEN>`, which only cron-job.org has. `/telegram/webhook` requires Telegram's secret-token header, and ignores messages from any chat except mine.
 - **Inputs are validated** with Pydantic, SQL is parameterized, and fetched text is escaped before it is sent to Telegram.
 
 ---
