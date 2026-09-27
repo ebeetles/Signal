@@ -57,6 +57,58 @@ Portfolio ────GET /digests, …─────────▶ └──�
 
 Public endpoints allow CORS only from `PORTFOLIO_ORIGIN` (GET only), are rate-limited per client IP (60 requests/min), send `Cache-Control: public, max-age=60`, and return errors as `{"error": {"code", "message", "details?"}}`. Interactive docs are served at `/docs`, and the schema at `/openapi.json`. The frontend contract is in [FRONTEND_HANDOFF.md](FRONTEND_HANDOFF.md) and is pinned by `tests/test_contract.py`.
 
+### Parameters and responses
+
+**`GET /digests`** takes three parameters:
+
+- `approved`: boolean, default `false`. With `true`, only 👍 items are returned, and only digests that have one.
+- `limit`: integer 1–30, default 10. Counted in digests per page, not items.
+- `before`: integer. A pagination cursor: the `next_before` value from the previous page.
+
+It returns:
+
+```json
+{
+  "digests": [
+    {
+      "id": 1, "date": "2026-09-25", "sent_at": "2026-09-25T19:43:01-04:00", "status": "sent",
+      "items": [
+        {"id": 2, "headline": "U.S. appeals court upholds designation of Anthropic as supply chain risk",
+         "url": "https://www.cnbc.com/...", "source": "cnbc.com",
+         "reason": "5 sources in 8h (no history yet), matches: anthropic, claude",
+         "entity": "Anthropic", "digest_date": "2026-09-25", "vote": "up"}
+      ]
+    }
+  ],
+  "next_before": null
+}
+```
+
+`next_before` is `null` on the last page.
+
+**`GET /digests/{id}?approved=`** returns one digest object in the same shape, or a 404.
+
+**`GET /interests/history?days=`** takes `days`, an integer 1–365 (default 30). It returns:
+
+```json
+{"start": "YYYY-MM-DD", "end": "YYYY-MM-DD",
+ "terms": [{"term": "claude", "origin": "manual", "current_weight": 1.0,
+            "points": [{"date": "2026-09-25", "weight": 1.0}]}]}
+```
+
+**`GET /stats`** takes no parameters. It returns `digests_sent`, `quiet_days`, `quiet_day_rate`, `items_sent`, `items_voted_up`, `items_voted_down`, `hit_rate`, `collect_hours_expected`, `collect_hours_ok`, `collect_reliability` and `missed_reports`.
+
+Invalid parameters return 422 with a `details` list naming the bad field. An unknown id returns 404, too many requests return 429 with `Retry-After`, and a database outage returns 503.
+
+### How the frontend communicates with the backend
+
+The frontend lives on GitHub Pages at `https://ebeetles.github.io/elwin-webpage/`, in a separate repo. It is being built from [FRONTEND_HANDOFF.md](FRONTEND_HANDOFF.md), and this section describes that contract. It only ever calls the public `GET` endpoints, cross-origin; CORS allows exactly that origin. It sends no credentials, holds no API keys, and can't reach the write endpoints: those need tokens that exist only on Render (cron) or in Telegram's webhook config.
+
+- **Homepage "Daily cool stuff" section.** On page load, `daily.js` (loaded with `defer`) calls `GET /digests?approved=true&limit=5` with a 3-second `AbortController` timeout. It flattens the items and shows up to about 5: headline as a link to `url`, `source`, `reason`, and a relative date computed from `digest_date`. All text is set with `textContent`, because headlines are untrusted. On any error, timeout or empty result, the section stays hidden.
+- **Archive page `daily.html`.** It calls `GET /digests?approved=true&limit=10` on load. The "Load more" button then calls the same URL with `&before=<next_before>` and hides itself when `next_before` is `null`.
+- **Interest chart on the archive page.** It calls `GET /interests/history?days=90` on load and draws one line per term from `points`.
+- **Where the data comes from.** Elwin's 👍 votes happen in Telegram, not on the site. The page is a read-only view of the items he approved.
+
 ## Configuration
 
 Secrets live only in environment variables (Render → Environment; locally, the gitignored `.env`):
@@ -96,6 +148,7 @@ migrations/      plain SQL
 seeds/           sources.yaml, aliases.yaml
 scripts/         set_webhook.py, get_chat_id.py, backfill_hn.py, replay.py
 tests/           232 tests
+prompt_log.md    AI tools and key prompts used to build this
 ```
 
 ## Development
